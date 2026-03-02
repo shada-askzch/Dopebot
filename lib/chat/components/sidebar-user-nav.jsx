@@ -44,21 +44,21 @@ export function SidebarUserNav({ user, collapsed }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" side="top" className="w-56">
             <DropdownMenuItem asChild>
-              <a href="/settings" className="flex items-center" style={{ textDecoration: 'inherit', color: 'inherit' }}>
+              <a href="/settings" className="flex items-center gap-2" style={{ textDecoration: 'inherit', color: 'inherit' }}>
                 <SettingsIcon size={14} />
-                <span className="ml-2">Settings</span>
+                <span>Settings</span>
               </a>
             </DropdownMenuItem>
             {mounted && (
               <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                 {theme === 'dark' ? <SunIcon size={14} /> : <MoonIcon size={14} />}
-                <span className="ml-2">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuItem asChild>
-              <a href="https://github.com/stephengpope/thepopebot/issues" target="_blank" rel="noopener noreferrer" className="flex items-center" style={{ textDecoration: 'inherit', color: 'inherit' }}>
+              <a href="https://github.com/stephengpope/thepopebot/issues" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2" style={{ textDecoration: 'inherit', color: 'inherit' }}>
                 <BugIcon size={14} />
-                <span className="ml-2">Report Issues</span>
+                <span>Report Issues</span>
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -67,7 +67,7 @@ export function SidebarUserNav({ user, collapsed }) {
               className="text-destructive"
             >
               <LogOutIcon size={14} />
-              <span className="ml-2">Sign Out</span>
+              <span>Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
