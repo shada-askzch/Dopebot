@@ -6,13 +6,12 @@ import { FitAddon } from '@xterm/addon-fit';
 import { SearchAddon } from '@xterm/addon-search';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { SerializeAddon } from '@xterm/addon-serialize';
-import { ensureCodeWorkspaceContainer } from './actions.js';
 import '@xterm/xterm/css/xterm.css';
 
 const STATUS = { connected: '#22c55e', connecting: '#eab308', disconnected: '#ef4444' };
 const RECONNECT_INTERVAL = 3000;
 
-export default function TerminalView({ codeWorkspaceId }) {
+export default function TerminalView({ codeWorkspaceId, ensureContainer }) {
   const containerRef = useRef(null);
   const termRef = useRef(null);
   const fitAddonRef = useRef(null);
@@ -135,15 +134,15 @@ export default function TerminalView({ codeWorkspaceId }) {
 
     (async () => {
       try {
-        const result = await ensureCodeWorkspaceContainer(codeWorkspaceId);
+        const result = await ensureContainer(codeWorkspaceId);
         if (result?.status === 'error') {
           const msg = result.message || 'Unknown container error';
-          console.error('ensureCodeWorkspaceContainer:', msg);
+          console.error('ensureContainer:', msg);
           if (!cancelled) setContainerError(msg);
           return;
         }
       } catch (err) {
-        console.error('ensureCodeWorkspaceContainer:', err);
+        console.error('ensureContainer:', err);
         if (!cancelled) setContainerError(err.message || String(err));
         return;
       }
@@ -165,15 +164,15 @@ export default function TerminalView({ codeWorkspaceId }) {
     if (wsRef.current) wsRef.current.close();
     try {
       setContainerError(null);
-      const result = await ensureCodeWorkspaceContainer(codeWorkspaceId);
+      const result = await ensureContainer(codeWorkspaceId);
       if (result?.status === 'error') {
         const msg = result.message || 'Unknown container error';
-        console.error('ensureCodeWorkspaceContainer:', msg);
+        console.error('ensureContainer:', msg);
         setContainerError(msg);
         return;
       }
     } catch (err) {
-      console.error('ensureCodeWorkspaceContainer:', err);
+      console.error('ensureContainer:', err);
       setContainerError(err.message || String(err));
       return;
     }
