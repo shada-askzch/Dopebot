@@ -19,8 +19,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_certs:/letsencrypt
-    networks:
-      - thepopebot
     restart: unless-stopped
 
   event-handler:
@@ -46,8 +44,6 @@ services:
       ## Uncomment the following lines to enable TLS via Let's Encrypt:
       # - traefik.http.routers.event-handler.entrypoints=websecure
       # - traefik.http.routers.event-handler.tls.certresolver=letsencrypt
-    networks:
-      - thepopebot
     stop_grace_period: 120s
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/api/ping"]
@@ -69,13 +65,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - .:/project
-    networks:
-      - thepopebot
     restart: unless-stopped
-
-networks:
-  thepopebot:
-    name: thepopebot
 
 volumes:
   traefik_certs:
