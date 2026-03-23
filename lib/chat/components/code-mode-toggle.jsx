@@ -33,6 +33,20 @@ export function RepoBranchPicker({
   const [loadingBranches, setLoadingBranches] = useState(false);
   const [reposLoaded, setReposLoaded] = useState(false);
 
+  // Load repos eagerly on mount
+  useEffect(() => {
+    setLoadingRepos(true);
+    getRepositories().then((data) => {
+      const list = data || [];
+      setRepos(list);
+      setReposLoaded(true);
+      setLoadingRepos(false);
+      if (list.length === 1) {
+        onRepoChange(list[0].full_name);
+      }
+    }).catch(() => setLoadingRepos(false));
+  }, []);
+
   // Load branches when repo changes
   useEffect(() => {
     if (!repo) return;
@@ -62,20 +76,6 @@ export function RepoBranchPicker({
           placeholder="Select repository..."
           loading={loadingRepos}
           highlight={!repo && !loadingRepos}
-          onOpen={() => {
-            if (!reposLoaded && !loadingRepos) {
-              setLoadingRepos(true);
-              getRepositories().then((data) => {
-                const list = data || [];
-                setRepos(list);
-                setReposLoaded(true);
-                setLoadingRepos(false);
-                if (list.length === 1) {
-                  onRepoChange(list[0].full_name);
-                }
-              }).catch(() => setLoadingRepos(false));
-            }
-          }}
         />
       </div>
       <div className={cn("w-full sm:w-auto sm:min-w-[200px] sm:max-w-[200px]", !repo && "opacity-50 pointer-events-none")}>

@@ -9,8 +9,12 @@ import { ChatHeader } from './chat-header.js';
 import { Greeting } from './greeting.js';
 import { RepoBranchPicker, WorkspaceBar } from './code-mode-toggle.js';
 import { DiffViewer } from './diff-viewer.js';
-import { getRepositories } from '../actions.js';
 import { cn } from '../utils.js';
+
+const fetchRepositories = () =>
+  fetch('/stream/repositories')
+    .then(r => r.json())
+    .catch(() => []);
 
 const fetchBranches = (repoFullName) =>
   fetch(`/stream/branches?repo=${encodeURIComponent(repoFullName)}`)
@@ -51,7 +55,7 @@ export function Chat({ chatId, initialMessages = [], workspace = null }) {
       .then(({ repo: r }) => {
         if (r) {
           setDefaultRepo(r);
-          if (!workspace && !repo) {
+          if (!workspace && !repo && !codeMode) {
             setRepo(r);
             setBranch('main');
           }
@@ -277,7 +281,7 @@ export function Chat({ chatId, initialMessages = [], workspace = null }) {
                   onRepoChange={setRepo}
                   branch={branch}
                   onBranchChange={handleBranchChange}
-                  getRepositories={getRepositories}
+                  getRepositories={fetchRepositories}
                   getBranches={fetchBranches}
                 />
               )}
@@ -287,10 +291,14 @@ export function Chat({ chatId, initialMessages = [], workspace = null }) {
                   onClick={() => {
                     const next = !codeMode;
                     setCodeMode(next);
-                    if (!next && defaultRepo) {
+                    if (next) {
+                      // Entering code mode — clear agent mode's default repo
+                      setRepo('');
+                      setBranch('');
+                    } else if (defaultRepo) {
                       setRepo(defaultRepo);
                       setBranch('main');
-                    } else if (!next) {
+                    } else {
                       setRepo('');
                       setBranch('');
                     }
