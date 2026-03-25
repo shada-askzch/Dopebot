@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { PlusIcon, KeyIcon, CopyIcon, CheckIcon, SpinnerIcon } from './icons.js';
+import { PlusIcon, CopyIcon, CheckIcon, SpinnerIcon } from './icons.js';
 import { SecretRow, Dialog, EmptyState } from './settings-shared.js';
 import { OAUTH_PROVIDERS } from '../../oauth/providers.js';
 import {
@@ -38,27 +38,72 @@ function buildProviderOptions() {
 const PROVIDER_OPTIONS = buildProviderOptions();
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Add secret dialog
+// Unified add secret dialog (manual + OAuth modes)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function AddJobSecretDialog({ open, onAdd, onCancel }) {
+function AddSecretDialog({ open, onAdd, onCancel, onOAuthSuccess }) {
+  // Shared state
+  const [mode, setMode] = useState('manual');
   const [name, setName] = useState('');
-  const [value, setValue] = useState('');
-  const [showValue, setShowValue] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const nameRef = useRef(null);
 
+  // Manual mode state
+  const [value, setValue] = useState('');
+  const [showValue, setShowValue] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // OAuth mode state
+  const [selectedOption, setSelectedOption] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [scopes, setScopes] = useState('');
+  const [redirectUri, setRedirectUri] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState('form'); // form | waiting | success
+  const popupRef = useRef(null);
+  const timeoutRef = useRef(null);
+
+  // Reset all state on open
   useEffect(() => {
     if (open) {
+      setMode('manual');
       setName('');
+      setError(null);
+      // Manual
       setValue('');
       setShowValue(false);
-      setError(null);
       setSaving(false);
+      // OAuth
+      setSelectedOption('');
+      setClientId('');
+      setClientSecret('');
+      setScopes('');
+      setStatus('form');
+      setCopied(false);
+      setRedirectUri(`${window.location.origin}/api/oauth/callback`);
       setTimeout(() => nameRef.current?.focus(), 50);
     }
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, [open]);
+
+  // Clear error on mode switch
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setError(null);
+  };
+
+  // Update scopes when provider/package selection changes
+  useEffect(() => {
+    if (selectedOption) {
+      const opt = PROVIDER_OPTIONS.find((o) => o.id === selectedOption);
+      if (opt) setScopes(opt.scopes);
+    }
+  }, [selectedOption]);
+
+  // ── Manual save ──────────────────────────────────────────────────────────
 
   const handleSave = async () => {
     const trimmed = name.trim().toUpperCase();
@@ -74,124 +119,22 @@ function AddJobSecretDialog({ open, onAdd, onCancel }) {
     }
   };
 
-  return (
-    <Dialog open={open} onClose={onCancel} title="Add Job Secret">
-      <div className="space-y-3">
-        <div>
-          <label className="text-xs font-medium mb-1 block">Name</label>
-          <input
-            ref={nameRef}
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
-            placeholder="e.g. GOOGLE_SERVICE_ACCOUNT_KEY"
-            className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-foreground"
-            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-          />
-        </div>
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-xs font-medium">Value</label>
-            <button
-              type="button"
-              onClick={() => setShowValue(!showValue)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {showValue ? 'Hide' : 'Show'}
-            </button>
-          </div>
-          {showValue ? (
-            <textarea
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="Enter value (supports multi-line JSON)..."
-              rows={4}
-              className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-foreground resize-y"
-            />
-          ) : (
-            <textarea
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="Enter value (supports multi-line JSON)..."
-              rows={4}
-              className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-foreground resize-y"
-              style={{ WebkitTextSecurity: 'disc' }}
-            />
-          )}
-        </div>
-        {error && <p className="text-xs text-destructive">{error}</p>}
-      </div>
-      <div className="flex justify-end gap-2 mt-5">
-        <button onClick={onCancel} className="rounded-md px-3 py-1.5 text-sm font-medium border border-border text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
-        <button onClick={handleSave} disabled={!name.trim() || !value || saving}
-          className="rounded-md px-3 py-1.5 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors">
-          {saving ? 'Saving...' : 'Save'}
-        </button>
-      </div>
-    </Dialog>
-  );
-}
+  // ── OAuth flow ───────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────────────────────────
-// OAuth helper dialog
-// ─────────────────────────────────────────────────────────────────────────────
-
-function AddOAuthSecretDialog({ open, onCancel, onSuccess }) {
-  const [name, setName] = useState('');
-  const [selectedOption, setSelectedOption] = useState('');
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
-  const [scopes, setScopes] = useState('');
-  const [redirectUri, setRedirectUri] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [error, setError] = useState(null);
-  const [status, setStatus] = useState('form'); // form | waiting | success
-  const nameRef = useRef(null);
-  const popupRef = useRef(null);
-  const timeoutRef = useRef(null);
-
-  // Load redirect URI on open
-  useEffect(() => {
-    if (open) {
-      setName('');
-      setSelectedOption('');
-      setClientId('');
-      setClientSecret('');
-      setScopes('');
-      setError(null);
-      setStatus('form');
-      setCopied(false);
-      setRedirectUri(`${window.location.origin}/api/oauth/callback`);
-      setTimeout(() => nameRef.current?.focus(), 50);
-    }
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [open]);
-
-  // Update scopes when provider/package selection changes
-  useEffect(() => {
-    if (selectedOption) {
-      const opt = PROVIDER_OPTIONS.find((o) => o.id === selectedOption);
-      if (opt) setScopes(opt.scopes);
-    }
-  }, [selectedOption]);
-
-  // Listen for postMessage from the OAuth callback popup
   const handleMessage = useCallback((event) => {
     if (event.origin !== window.location.origin) return;
     const data = event.data;
     if (data?.type === 'oauth-success') {
       setStatus('success');
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      onSuccess();
+      onOAuthSuccess();
       setTimeout(() => onCancel(), 1500);
     } else if (data?.type === 'oauth-error') {
       setStatus('form');
       setError(data.detail || 'Authorization failed.');
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     }
-  }, [onCancel, onSuccess]);
+  }, [onCancel, onOAuthSuccess]);
 
   useEffect(() => {
     if (status === 'waiting') {
@@ -221,7 +164,7 @@ function AddOAuthSecretDialog({ open, onCancel, onSuccess }) {
       tokenUrl: opt.tokenUrl,
       scopes,
       secretType: 'agent_job_secret',
-      returnPath: '/admin/event-handler/jobs',
+      returnPath: '/admin/event-handler/agent-jobs',
     });
 
     if (result?.error) {
@@ -254,10 +197,12 @@ function AddOAuthSecretDialog({ open, onCancel, onSuccess }) {
     }, 5 * 60 * 1000);
   };
 
+  // ── Render ───────────────────────────────────────────────────────────────
+
   const inputClass = 'w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-foreground';
 
   return (
-    <Dialog open={open} onClose={onCancel} title="OAuth Helper">
+    <Dialog open={open} onClose={onCancel} title="Add Secret">
       {status === 'success' ? (
         <div className="flex items-center justify-center gap-2 py-8 text-green-500">
           <CheckIcon size={20} />
@@ -272,98 +217,176 @@ function AddOAuthSecretDialog({ open, onCancel, onSuccess }) {
       ) : (
         <>
           <div className="space-y-3">
+            {/* Mode toggle */}
+            <div className="flex rounded-md border border-border overflow-hidden">
+              <button
+                type="button"
+                onClick={() => handleModeChange('manual')}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
+                  mode === 'manual'
+                    ? 'bg-foreground text-background'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+              >
+                Manual
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange('oauth')}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
+                  mode === 'oauth'
+                    ? 'bg-foreground text-background'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+              >
+                OAuth
+              </button>
+            </div>
+
+            {/* Secret name — shared */}
             <div>
-              <label className="text-xs font-medium mb-1 block">Secret Name</label>
+              <label className="text-xs font-medium mb-1 block">Name</label>
               <input
                 ref={nameRef}
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
-                placeholder="e.g. GOOGLE_OAUTH_TOKEN"
+                placeholder={mode === 'manual' ? 'e.g. GOOGLE_SERVICE_ACCOUNT_KEY' : 'e.g. GOOGLE_OAUTH_TOKEN'}
                 className={inputClass}
+                onKeyDown={(e) => e.key === 'Enter' && mode === 'manual' && handleSave()}
               />
             </div>
-            <div>
-              <label className="text-xs font-medium mb-1 block">Provider</label>
-              <select
-                value={selectedOption}
-                onChange={(e) => setSelectedOption(e.target.value)}
-                className={`${inputClass} font-sans`}
-              >
-                <option value="">Select a provider...</option>
-                {Object.entries(OAUTH_PROVIDERS).map(([providerId, provider]) => (
-                  <optgroup key={providerId} label={provider.name}>
-                    {Object.entries(provider.packages).map(([packageId, pkg]) => (
-                      <option key={`${providerId}:${packageId}`} value={`${providerId}:${packageId}`}>
-                        {pkg.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium mb-1 block">Client ID</label>
-              <input
-                type="text"
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                placeholder="OAuth client ID"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium mb-1 block">Client Secret</label>
-              <input
-                type="password"
-                value={clientSecret}
-                onChange={(e) => setClientSecret(e.target.value)}
-                placeholder="OAuth client secret"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium mb-1 block">Scopes</label>
-              <textarea
-                value={scopes}
-                onChange={(e) => setScopes(e.target.value)}
-                placeholder="Space-separated scopes"
-                rows={3}
-                className={`${inputClass} resize-y`}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Predefined scopes. Edit if needed.</p>
-            </div>
-            <div>
-              <label className="text-xs font-medium mb-1 block">Redirect URI</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={redirectUri}
-                  readOnly
-                  className={`${inputClass} text-muted-foreground bg-muted flex-1`}
-                />
-                <button
-                  type="button"
-                  onClick={handleCopyRedirectUri}
-                  className="rounded-md px-2.5 py-1.5 text-xs border border-border text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                  title="Copy redirect URI"
-                >
-                  {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
-                </button>
+
+            {/* Manual mode fields */}
+            {mode === 'manual' && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-medium">Value</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowValue(!showValue)}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showValue ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                {showValue ? (
+                  <textarea
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder="Enter value (supports multi-line JSON)..."
+                    rows={4}
+                    className={`${inputClass} resize-y`}
+                  />
+                ) : (
+                  <textarea
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder="Enter value (supports multi-line JSON)..."
+                    rows={4}
+                    className={`${inputClass} resize-y`}
+                    style={{ WebkitTextSecurity: 'disc' }}
+                  />
+                )}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Add this URL as a redirect URI in your OAuth app.</p>
-            </div>
+            )}
+
+            {/* OAuth mode fields */}
+            {mode === 'oauth' && (
+              <>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Provider</label>
+                  <select
+                    value={selectedOption}
+                    onChange={(e) => setSelectedOption(e.target.value)}
+                    className={`${inputClass} font-sans`}
+                  >
+                    <option value="">Select a provider...</option>
+                    {Object.entries(OAUTH_PROVIDERS).map(([providerId, provider]) => (
+                      <optgroup key={providerId} label={provider.name}>
+                        {Object.entries(provider.packages).map(([packageId, pkg]) => (
+                          <option key={`${providerId}:${packageId}`} value={`${providerId}:${packageId}`}>
+                            {pkg.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Client ID</label>
+                  <input
+                    type="text"
+                    value={clientId}
+                    onChange={(e) => setClientId(e.target.value)}
+                    placeholder="OAuth client ID"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Client Secret</label>
+                  <input
+                    type="password"
+                    value={clientSecret}
+                    onChange={(e) => setClientSecret(e.target.value)}
+                    placeholder="OAuth client secret"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Scopes</label>
+                  <textarea
+                    value={scopes}
+                    onChange={(e) => setScopes(e.target.value)}
+                    placeholder="Space-separated scopes"
+                    rows={3}
+                    className={`${inputClass} resize-y`}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Predefined scopes. Edit if needed.</p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Redirect URI</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={redirectUri}
+                      readOnly
+                      className={`${inputClass} text-muted-foreground bg-muted flex-1`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCopyRedirectUri}
+                      className="rounded-md px-2.5 py-1.5 text-xs border border-border text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                      title="Copy redirect URI"
+                    >
+                      {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Add this URL as a redirect URI in your OAuth app.</p>
+                </div>
+              </>
+            )}
+
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
+
+          {/* Footer */}
           <div className="flex justify-end gap-2 mt-5">
             <button onClick={onCancel} className="rounded-md px-3 py-1.5 text-sm font-medium border border-border text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
-            <button
-              onClick={handleAuthorize}
-              disabled={!name.trim() || !selectedOption || !clientId || !clientSecret}
-              className="rounded-md px-3 py-1.5 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors"
-            >
-              Authorize
-            </button>
+            {mode === 'manual' ? (
+              <button onClick={handleSave} disabled={!name.trim() || !value || saving}
+                className="rounded-md px-3 py-1.5 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors">
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            ) : (
+              <button
+                onClick={handleAuthorize}
+                disabled={!name.trim() || !selectedOption || !clientId || !clientSecret}
+                className="rounded-md px-3 py-1.5 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors"
+              >
+                Authorize
+              </button>
+            )}
           </div>
         </>
       )}
@@ -379,7 +402,6 @@ export function JobsPage() {
   const [secrets, setSecrets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
-  const [showOAuth, setShowOAuth] = useState(false);
 
   const loadSecrets = async () => {
     try {
@@ -427,13 +449,6 @@ export function JobsPage() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => setShowOAuth(true)}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-accent shrink-0 transition-colors"
-          >
-            <KeyIcon size={14} />
-            OAuth helper
-          </button>
-          <button
             onClick={() => setShowAdd(true)}
             className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-foreground text-background hover:bg-foreground/90 shrink-0 transition-colors"
           >
@@ -442,15 +457,11 @@ export function JobsPage() {
           </button>
         </div>
       </div>
-      <AddJobSecretDialog
+      <AddSecretDialog
         open={showAdd}
         onAdd={handleAdd}
         onCancel={() => setShowAdd(false)}
-      />
-      <AddOAuthSecretDialog
-        open={showOAuth}
-        onCancel={() => setShowOAuth(false)}
-        onSuccess={loadSecrets}
+        onOAuthSuccess={loadSecrets}
       />
       {secrets.length === 0 ? (
         <EmptyState
