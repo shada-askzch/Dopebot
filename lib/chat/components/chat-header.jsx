@@ -61,6 +61,7 @@ export function ChatHeader({ chatId: chatIdProp, workspaceId }) {
     const titleHandler = (e) => {
       if (e.detail.chatId === chatId) {
         setTitle(e.detail.title);
+        if (e.detail.chatMode) setChatMode(e.detail.chatMode);
       }
     };
     const starHandler = (e) => {
