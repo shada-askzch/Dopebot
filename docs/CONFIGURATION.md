@@ -51,14 +51,9 @@ Create a fine-grained PAT scoped to your repository only. Required permissions:
 
 ---
 
-## GitHub Secrets
+## Agent Job Secrets
 
-Set via `npx thepopebot set-agent-secret` and `npx thepopebot set-agent-llm-secret`. Each value is stored exactly as provided.
-
-| Prefix | Purpose | Example |
-|--------|---------|---------|
-| `AGENT_` | Protected credentials (filtered from LLM's bash) | `AGENT_GH_TOKEN`, `AGENT_ANTHROPIC_API_KEY` |
-| `AGENT_LLM_` | LLM-accessible credentials (skills, browser logins) | `AGENT_LLM_BRAVE_API_KEY` |
+Agent job secrets are managed through the admin UI (Settings > Agent Jobs > Secrets). They are stored encrypted in SQLite and injected as env vars into Docker containers. The agent can discover available secrets via the `get-secret` skill.
 
 The event handler automatically passes these credentials to the Docker container at runtime via `buildAgentAuthEnv()`.
 

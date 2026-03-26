@@ -25,22 +25,9 @@ thepopebot includes these security measures by default:
 4. SDKs (Anthropic, GitHub CLI) read their keys from `process.env` normally
 5. The LLM cannot `echo $ANYTHING` — subprocess env is filtered
 
-### Protected vs. LLM-Accessible
+### Agent Job Secrets
 
-| Credential Type | Set with | Visible to LLM? |
-|-----------------|----------|------------------|
-| Infrastructure keys (`GH_TOKEN`, `ANTHROPIC_API_KEY`) | `set-agent-secret` | No — filtered from bash |
-| Skill API keys, browser logins | `set-agent-llm-secret` | Yes — skills need these |
-
-```bash
-# Protected (filtered from LLM)
-npx thepopebot set-agent-secret GH_TOKEN ghp_xxx
-npx thepopebot set-agent-secret ANTHROPIC_API_KEY sk-ant-xxx
-
-# Accessible to LLM (not filtered)
-npx thepopebot set-agent-llm-secret BROWSER_PASSWORD mypass123
-npx thepopebot set-agent-llm-secret BRAVE_API_KEY xxx
-```
+Agent job secrets are managed through the admin UI (Settings > Agent Jobs > Secrets). They are stored encrypted in SQLite and injected as env vars into Docker containers. The agent can discover available secrets via the `get-secret` skill.
 
 ---
 

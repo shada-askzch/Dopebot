@@ -113,8 +113,7 @@ Pass whichever key(s) your agent/provider needs:
 | `AGENT_JOB_TITLE` | PR title and commit message |
 | `AGENT_JOB_DESCRIPTION` | PR body and prompt content |
 | `AGENT_JOB_ID` | Log directory name (fallback: extracted from branch) |
-| `SECRETS` | JSON blob of AGENT_* secrets (from GitHub Actions) |
-| `LLM_SECRETS` | JSON blob of AGENT_LLM_* secrets (from GitHub Actions) |
+| `AGENT_JOB_SECRETS` | JSON blob of agent job secrets (keys + values, for get-secret skill discovery) |
 
 ### Interactive Runtime
 

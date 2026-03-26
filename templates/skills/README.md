@@ -74,7 +74,6 @@ ln -s ~/pi-skills/youtube-transcript .claude/skills/youtube-transcript
 | Skill | Description |
 |-------|-------------|
 | [brave-search](brave-search/SKILL.md) | Web search and content extraction via Brave Search |
-| [browser-tools](browser-tools/SKILL.md) | Interactive browser automation via Chrome DevTools Protocol |
 | [gccli](gccli/SKILL.md) | Google Calendar CLI for events and availability |
 | [gdcli](gdcli/SKILL.md) | Google Drive CLI for file management and sharing |
 | [gmcli](gmcli/SKILL.md) | Gmail CLI for email, drafts, and labels |
@@ -105,7 +104,6 @@ Skills use project-root-relative paths (e.g., `skills/brave-search/search.js`).
 Some skills require additional setup. Generally, the agent will walk you through that. But if not, here you go:
 
 - **brave-search**: Requires Node.js. Run `npm install` in the skill directory.
-- **browser-tools**: Requires Chrome and Node.js. Run `npm install` in the skill directory.
 - **gccli**: Requires Node.js. Install globally with `npm install -g @mariozechner/gccli`.
 - **gdcli**: Requires Node.js. Install globally with `npm install -g @mariozechner/gdcli`.
 - **gmcli**: Requires Node.js. Install globally with `npm install -g @mariozechner/gmcli`.

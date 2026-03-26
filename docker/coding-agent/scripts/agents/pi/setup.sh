@@ -3,6 +3,9 @@
 
 WORKSPACE_DIR=$(pwd)
 
+# Activate browser-tools for Pi (other agents have Playwright MCP built-in)
+ln -sf ../browser-tools skills/active/browser-tools 2>/dev/null || true
+
 # Always write system prompt (clears previous if SYSTEM_PROMPT is empty)
 mkdir -p "${WORKSPACE_DIR}/.pi"
 if [ -n "$SYSTEM_PROMPT" ]; then

@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * llm-secrets.js - List available LLM-accessible secret keys
+ * get-secret.js - List available agent job secret keys
  *
- * Usage: llm-secrets.js
+ * Usage: get-secret.js
  *
- * Lists the key names from LLM_SECRETS (not the values).
+ * Lists the key names from AGENT_JOB_SECRETS (not the values).
  * To get a value, use: echo $KEY_NAME
  */
 
-const secretsJson = process.env.LLM_SECRETS;
+const secretsJson = process.env.AGENT_JOB_SECRETS;
 
 if (!secretsJson) {
-  console.log('No LLM_SECRETS configured.');
+  console.log('No AGENT_JOB_SECRETS configured.');
   process.exit(0);
 }
 
@@ -21,13 +21,13 @@ try {
   const keys = Object.keys(parsed);
 
   if (keys.length === 0) {
-    console.log('LLM_SECRETS is empty.');
+    console.log('AGENT_JOB_SECRETS is empty.');
   } else {
     console.log('Available secrets:');
     keys.forEach(key => console.log(`  - ${key}`));
     console.log('\nTo get a value: echo $KEY_NAME');
   }
 } catch (e) {
-  console.error('Error parsing LLM_SECRETS:', e.message);
+  console.error('Error parsing AGENT_JOB_SECRETS:', e.message);
   process.exit(1);
 }

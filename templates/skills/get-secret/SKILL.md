@@ -1,12 +1,12 @@
 ---
-name: llm-secrets
+name: get-secret
 description: List available LLM-accessible credentials. Use when you need API keys, passwords, or other secrets that have been made available to you.
 ---
 
 # List Available Secrets
 
 ```bash
-skills/llm-secrets/llm-secrets.js
+skills/get-secret/get-secret.js
 ```
 
 Shows the names of available secret keys (not values). Output example:

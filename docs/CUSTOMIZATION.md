@@ -124,9 +124,7 @@ These are activated out of the box:
 
 | Skill | Description |
 |-------|-------------|
-| `browser-tools` | Interactive browser automation via Chrome DevTools Protocol |
-| `llm-secrets` | List available LLM-accessible credentials |
-| `modify-self` | Modify the agent's own code, configuration, personality, or cron jobs |
+| `get-secret` | List available LLM-accessible credentials |
 
 ### Available Skills
 
@@ -182,25 +180,11 @@ echo $ANTHROPIC_API_KEY  # empty
 echo $MY_CUSTOM_KEY      # empty
 ```
 
-### LLM-Accessible Secrets
+### Agent Job Secrets
 
-Sometimes you want the LLM to have access to certain credentials - browser logins, skill API keys, or service passwords. Use `LLM_SECRETS` for these.
+Agent job secrets are managed through the admin UI (Settings > Agent Jobs > Secrets). They are stored encrypted in SQLite and injected as individual env vars into Docker containers. The `AGENT_JOB_SECRETS` env var contains a JSON blob of all secrets for skill discovery via the `get-secret` skill.
 
-```bash
-# Protected (filtered from LLM) — set via CLI:
-npx thepopebot set-agent-secret GH_TOKEN ghp_xxx
-npx thepopebot set-agent-secret ANTHROPIC_API_KEY sk-ant-xxx
-
-# Accessible to LLM (not filtered) — set via CLI:
-npx thepopebot set-agent-llm-secret BROWSER_PASSWORD mypass123
-```
-
-| Credential Type | Put In | Why |
-|-----------------|--------|-----|
-| `GH_TOKEN` | `SECRETS` | Agent shouldn't push to arbitrary repos |
-| `ANTHROPIC_API_KEY` | `SECRETS` | Agent shouldn't leak billing keys |
-| Browser login password | `LLM_SECRETS` | Skills may need to authenticate |
-| Third-party API key for a skill | `LLM_SECRETS` | Skills need these to function |
+The agent can discover available secrets by running the `get-secret` skill, then access values via `echo $KEY_NAME`.
 
 ### Implementation
 

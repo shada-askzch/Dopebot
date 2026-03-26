@@ -99,12 +99,6 @@ These commands set individual GitHub repository secrets/variables using the `gh`
 
 | Command | Description |
 |---------|-------------|
-| `set-agent-secret KEY [VALUE]` | Set `AGENT_<KEY>` GitHub secret and update `.env` |
-| `set-agent-llm-secret KEY [VALUE]` | Set `AGENT_LLM_<KEY>` GitHub secret |
 | `set-var KEY [VALUE]` | Set a GitHub repository variable |
 
-GitHub secrets use a prefix convention so the workflow can route them correctly:
-
-- **`AGENT_`** — Protected secrets passed to the Docker container (filtered from LLM). Example: `AGENT_GH_TOKEN`, `AGENT_ANTHROPIC_API_KEY`
-- **`AGENT_LLM_`** — LLM-accessible secrets (not filtered). Example: `AGENT_LLM_BRAVE_API_KEY`
-- **No prefix** — Workflow-only secrets, never passed to container. Example: `GH_WEBHOOK_SECRET`
+Agent job secrets are now managed through the admin UI (Settings > Agent Jobs > Secrets), stored encrypted in SQLite, and injected directly into Docker containers.

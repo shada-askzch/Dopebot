@@ -27,15 +27,9 @@ These set GitHub repository secrets/variables using the `gh` CLI. They read `GH_
 
 | Command | Description |
 |---------|-------------|
-| `set-agent-secret KEY [VALUE]` | Set `AGENT_<KEY>` GitHub secret and update `.env` |
-| `set-agent-llm-secret KEY [VALUE]` | Set `AGENT_LLM_<KEY>` GitHub secret |
 | `set-var KEY [VALUE]` | Set a GitHub repository variable |
 
-### Secret Prefix Convention
-
-- **`AGENT_`** — Protected secrets passed to Docker container, filtered from LLM bash env. Example: `AGENT_GH_TOKEN`, `AGENT_ANTHROPIC_API_KEY`
-- **`AGENT_LLM_`** — LLM-accessible secrets, not filtered. Example: `AGENT_LLM_BRAVE_API_KEY`
-- **No prefix** — Workflow-only secrets, never passed to container. Example: `GH_WEBHOOK_SECRET`
+Agent job secrets are now managed through the admin UI (Settings > Agent Jobs > Secrets), stored encrypted in SQLite, and injected directly into Docker containers.
 
 ## Common Workflows
 
@@ -61,5 +55,5 @@ npx thepopebot reset config/CRONS.json # accept new template
 ```bash
 npx thepopebot set-var LLM_PROVIDER openai
 npx thepopebot set-var LLM_MODEL gpt-4o
-npx thepopebot set-agent-secret OPENAI_API_KEY sk-...
+# Set API keys via admin UI: Settings > Agent Jobs > Secrets
 ```

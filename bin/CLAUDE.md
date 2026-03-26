@@ -13,8 +13,6 @@ Entry point: `cli.js` (invoked via `npx thepopebot <command>`).
 | `reset [file]` | Restore a template file to defaults |
 | `diff [file]` | Show diff between user file and package template |
 | `reset-auth` | Regenerate `AUTH_SECRET` (invalidates all sessions) |
-| `set-agent-secret <KEY> [VALUE]` | Set GitHub secret with `AGENT_` prefix + update `.env` |
-| `set-agent-llm-secret <KEY> [VALUE]` | Set GitHub secret with `AGENT_LLM_` prefix |
 | `set-var <KEY> [VALUE]` | Set GitHub repository variable |
 | `user:password <email>` | Change user password |
 | `sync <path>` | Dev helper — sync local package to test install |

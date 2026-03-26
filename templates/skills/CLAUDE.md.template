@@ -98,18 +98,7 @@ The `skills/active/` directory is shared by both agent backends via symlink brid
 
 ## Credential Setup
 
-If a skill needs an API key, set it up before the job runs:
-
-```bash
-npx thepopebot set-agent-llm-secret KEY_NAME value
-```
-
-This creates a GitHub secret with `AGENT_LLM_` prefix, exposed as an env var in the Docker container. Also add to `.env` for local development.
-
-**Multi-line secrets** (e.g., JSON service account files):
-```bash
-npx thepopebot set-agent-llm-secret GOOGLE_CREDENTIALS < credentials.json
-```
+If a skill needs an API key, add it via the admin UI (Settings > Agent Jobs > Secrets). The secret will be injected as an env var into Docker containers. The agent can discover available secrets via the `get-secret` skill.
 
 ## Testing
 

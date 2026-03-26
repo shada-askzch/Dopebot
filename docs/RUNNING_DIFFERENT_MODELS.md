@@ -47,11 +47,7 @@ npx thepopebot set-var LLM_PROVIDER openai
 npx thepopebot set-var LLM_MODEL gpt-4o
 ```
 
-The matching API key must exist as a GitHub secret:
-
-```bash
-npx thepopebot set-agent-secret OPENAI_API_KEY sk-...
-```
+The matching API key must be set via the admin UI (Settings > Agent Jobs > Secrets).
 
 These defaults apply to every job unless overridden per-job (see below).
 
@@ -120,11 +116,7 @@ npx thepopebot set-var LLM_MODEL deepseek-chat
 npx thepopebot set-var CUSTOM_OPENAI_BASE_URL https://api.deepseek.com/v1
 ```
 
-Then set the API key as a GitHub secret:
-
-```bash
-npx thepopebot set-agent-secret CUSTOM_API_KEY sk-...
-```
+Then set the API key via the admin UI (Settings > Agent Jobs > Secrets).
 
 Cloud custom APIs are reachable from any runner — no other changes needed.
 

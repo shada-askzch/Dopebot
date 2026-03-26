@@ -121,31 +121,30 @@ function ContainerRow({ container, onRequestStop, isStopping, isStarting }) {
 
   return (
     <tr className="border-t border-border">
-      <td className="py-2.5 pr-3">
+      <td className="py-2.5 pr-3 whitespace-nowrap">
         <StateBadge state={container.state} />
       </td>
-      <td className="py-2.5 pr-3 min-w-0">
-        <div className="text-sm font-medium truncate">{container.name}</div>
-        <div className="text-xs text-muted-foreground truncate">{imageName}</div>
+      <td className="py-2.5 pr-3 min-w-0 whitespace-nowrap">
+        <div className="text-sm font-medium truncate" title={imageName}>{container.name}</div>
       </td>
-      <td className="py-2.5 pr-3 text-xs text-right hidden md:table-cell">
+      <td className="py-2.5 pr-3 text-xs text-right hidden md:table-cell whitespace-nowrap">
         {isRunning && container.stats ? (
           <span>{container.stats.cpu.toFixed(1)}%</span>
         ) : (
           <span className="text-muted-foreground">&mdash;</span>
         )}
       </td>
-      <td className="py-2.5 pr-3 text-xs text-right hidden md:table-cell">
+      <td className="py-2.5 pr-3 text-xs text-right hidden md:table-cell whitespace-nowrap">
         {isRunning && container.stats ? (
           <span>{formatBytes(container.stats.memUsage)}</span>
         ) : (
           <span className="text-muted-foreground">&mdash;</span>
         )}
       </td>
-      <td className="py-2.5 pr-3 text-xs text-muted-foreground hidden lg:table-cell">
+      <td className="py-2.5 pr-3 text-xs text-muted-foreground hidden lg:table-cell whitespace-nowrap">
         {container.status}
       </td>
-      <td className="py-2.5 text-right">
+      <td className="py-2.5 text-right whitespace-nowrap">
         <div className="inline-flex items-center gap-1.5">
           {isRunning && (
             isStopping ? (

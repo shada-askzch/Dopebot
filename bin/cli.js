@@ -57,8 +57,6 @@ Commands:
   reset [file]                      Restore a template file (or list available templates)
   diff [file]                       Show differences between project files and package templates
   sync <path>                       Sync local package to a test install (build, pack, Docker)
-  set-agent-secret <KEY> [VALUE]    Set a GitHub secret with AGENT_ prefix (also updates .env)
-  set-agent-llm-secret <KEY> [VALUE]  Set a GitHub secret with AGENT_LLM_ prefix
   set-var <KEY> [VALUE]             Set a GitHub repository variable
   user:password <email>             Change a user's password
 `);
@@ -264,7 +262,7 @@ async function init() {
   }
 
   // Create default skill activation symlinks
-  const defaultSkills = ['browser-tools', 'llm-secrets', 'modify-self'];
+  const defaultSkills = ['get-secret'];
   const activeDir = path.join(cwd, 'skills', 'active');
   fs.mkdirSync(activeDir, { recursive: true });
   for (const skill of defaultSkills) {
@@ -711,56 +709,6 @@ async function promptForValue(key) {
   return value;
 }
 
-async function setAgentSecret(key, value) {
-  if (!key) {
-    console.error('\n  Usage: thepopebot set-agent-secret <KEY> [VALUE]\n');
-    console.error('  Example: thepopebot set-agent-secret ANTHROPIC_API_KEY\n');
-    process.exit(1);
-  }
-
-  if (!value) value = await promptForValue(key);
-
-  const { owner, repo } = loadRepoInfo();
-  const prefixedName = `AGENT_${key}`;
-
-  const { setSecret } = await import(path.join(__dirname, '..', 'setup', 'lib', 'github.mjs'));
-  const { updateEnvVariable } = await import(path.join(__dirname, '..', 'setup', 'lib', 'auth.mjs'));
-
-  const result = await setSecret(owner, repo, prefixedName, value);
-  if (result.success) {
-    console.log(`\n  Set GitHub secret: ${prefixedName}`);
-    updateEnvVariable(key, value);
-    console.log(`  Updated .env: ${key}`);
-    console.log('');
-  } else {
-    console.error(`\n  Failed to set ${prefixedName}: ${result.error}\n`);
-    process.exit(1);
-  }
-}
-
-async function setAgentLlmSecret(key, value) {
-  if (!key) {
-    console.error('\n  Usage: thepopebot set-agent-llm-secret <KEY> [VALUE]\n');
-    console.error('  Example: thepopebot set-agent-llm-secret BRAVE_API_KEY\n');
-    process.exit(1);
-  }
-
-  if (!value) value = await promptForValue(key);
-
-  const { owner, repo } = loadRepoInfo();
-  const prefixedName = `AGENT_LLM_${key}`;
-
-  const { setSecret } = await import(path.join(__dirname, '..', 'setup', 'lib', 'github.mjs'));
-
-  const result = await setSecret(owner, repo, prefixedName, value);
-  if (result.success) {
-    console.log(`\n  Set GitHub secret: ${prefixedName}\n`);
-  } else {
-    console.error(`\n  Failed to set ${prefixedName}: ${result.error}\n`);
-    process.exit(1);
-  }
-}
-
 async function setVar(key, value) {
   if (!key) {
     console.error('\n  Usage: thepopebot set-var <KEY> [VALUE]\n');
@@ -843,12 +791,6 @@ switch (command) {
     await sync(args[0]);
     break;
   }
-  case 'set-agent-secret':
-    await setAgentSecret(args[0], args[1]);
-    break;
-  case 'set-agent-llm-secret':
-    await setAgentLlmSecret(args[0], args[1]);
-    break;
   case 'set-var':
     await setVar(args[0], args[1]);
     break;

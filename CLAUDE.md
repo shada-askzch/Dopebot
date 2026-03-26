@@ -130,7 +130,7 @@ Both use `lib/tools/docker.js` for container lifecycle via Unix socket API.
 
 ## Skills System
 
-Plugin directories under `skills/`. Activate by symlinking into `skills/active/`. Each skill has `SKILL.md` with YAML frontmatter (`name`, `description`). The `{{skills}}` template variable in markdown files resolves active skill descriptions at runtime. Default active skills: `llm-secrets`, `modify-self`.
+Plugin directories under `skills/`. Activate by symlinking into `skills/active/`. Each skill has `SKILL.md` with YAML frontmatter (`name`, `description`). The `{{skills}}` template variable in markdown files resolves active skill descriptions at runtime. Default active skill: `get-secret`. Pi agent auto-activates `browser-tools` (other agents use Playwright MCP).
 
 ## Template Config & Markdown Includes
 

@@ -21,9 +21,7 @@ These are activated out of the box:
 
 | Skill | Description |
 |-------|-------------|
-| `browser-tools` | Interactive browser automation via Chrome DevTools Protocol |
-| `llm-secrets` | List available LLM-accessible credentials |
-| `modify-self` | Modify the agent's own code, configuration, personality, or cron jobs |
+| `get-secret` | List available LLM-accessible credentials |
 
 ## Available Skills
 
@@ -104,21 +102,7 @@ If bash + curl isn't sufficient, use Node.js with a `package.json`. Dependencies
 
 ## Credential Setup
 
-If a skill needs an API key:
-
-```bash
-# Set as LLM-accessible GitHub secret
-npx thepopebot set-agent-llm-secret MY_API_KEY your-key-here
-
-# Also add to .env for local development
-echo "MY_API_KEY=your-key-here" >> .env
-```
-
-For multi-line secrets (e.g., JSON service account files), pipe via stdin:
-
-```bash
-npx thepopebot set-agent-llm-secret GOOGLE_CREDENTIALS < credentials.json
-```
+If a skill needs an API key, add it via the admin UI (Settings > Agent Jobs > Secrets). The secret will be injected as an env var into Docker containers. The agent can discover available secrets via the `get-secret` skill.
 
 ---
 

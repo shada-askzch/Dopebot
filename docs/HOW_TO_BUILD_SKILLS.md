@@ -150,23 +150,6 @@ The built-in `brave-search` skill uses Node.js for HTML parsing (jsdom, readabil
 
 ---
 
-## browser-tools skill
-
-Uses **Chrome DevTools Protocol (CDP) directly** — not Playwright, not Puppeteer. Connects to Chrome running with `--remote-debugging-port=9222`. Standalone JS scripts:
-
-- `browser-start.js` — launch Chrome with remote debugging (`--profile` flag copies user's Chrome profile for cookies/logins)
-- `browser-nav.js` — navigate to URLs
-- `browser-content.js` — extract page content
-- `browser-eval.js` — execute JS in the active tab
-- `browser-screenshot.js` — take screenshots
-- `browser-pick.js` — interactive element selector
-- `browser-cookies.js` — manage cookies
-- `browser-hn-scraper.js` — Hacker News scraper
-
-Use `browser-start.js` to launch Chrome before other scripts. The `--profile` flag copies your default Chrome profile so the browser has your existing cookies and logins.
-
----
-
 ## Bundled skills
 
 Skills are bundled in `templates/skills/` and scaffolded into user projects by `npx thepopebot init`:
@@ -174,12 +157,10 @@ Skills are bundled in `templates/skills/` and scaffolded into user projects by `
 | Skill | Description |
 |-------|-------------|
 | brave-search | Web search and content extraction via Brave Search API |
-| browser-tools | Chrome automation via CDP (navigate, screenshot, eval, scrape) |
 | google-docs | Create and manage Google Docs on a shared drive via service account |
 | google-drive | Google Drive operations (list, upload, download, delete) via service account |
 | kie-ai | AI image and video generation via kie.ai API |
-| llm-secrets | Manage LLM-accessible secrets |
-| modify-self | Self-modification capabilities |
+| get-secret | List available LLM-accessible credentials |
 | youtube-transcript | YouTube transcript extraction |
 
 ## Where to find more skills
@@ -194,16 +175,7 @@ These skills follow the **Agent Skills standard** (SKILL.md format), compatible 
 
 ## Credential setup
 
-If a skill needs an API key:
-- `npx thepopebot set-agent-llm-secret <KEY_NAME> <value>` — creates a GitHub secret with `AGENT_LLM_` prefix, exposed as an env var in the Docker container
-- Also add to `.env` for local development
-- Keys can be rotated later with the same command
-
-**Multi-line secrets** (e.g., JSON service account files): omit the value argument and pipe the file via stdin:
-```bash
-npx thepopebot set-agent-llm-secret GOOGLE_CREDENTIALS < credentials.json
-```
-Avoid `$(cat credentials.json)` — it can break on special characters and newlines.
+If a skill needs an API key, add it via the admin UI (Settings > Agent Jobs > Secrets). The secret will be injected as an env var into Docker containers. The agent can discover available secrets via the `get-secret` skill.
 
 ---
 

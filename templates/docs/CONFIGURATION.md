@@ -91,7 +91,7 @@ Restart your server after changes.
 ```bash
 npx thepopebot set-var LLM_PROVIDER openai
 npx thepopebot set-var LLM_MODEL gpt-4o
-npx thepopebot set-agent-secret OPENAI_API_KEY sk-...
+# Set API keys via admin UI: Settings > Agent Jobs > Secrets
 ```
 
 ### Per-Job Overrides
@@ -118,7 +118,7 @@ Point at any OpenAI-compatible endpoint (DeepSeek, Ollama, Together AI, etc.):
 npx thepopebot set-var LLM_PROVIDER custom
 npx thepopebot set-var LLM_MODEL deepseek-chat
 npx thepopebot set-var CUSTOM_OPENAI_BASE_URL https://api.deepseek.com/v1
-npx thepopebot set-agent-secret CUSTOM_API_KEY sk-...
+# Set CUSTOM_API_KEY via admin UI: Settings > Agent Jobs > Secrets
 
 # Local custom (Ollama, LM Studio, etc.) — needs self-hosted runner
 npx thepopebot set-var RUNS_ON self-hosted
@@ -129,20 +129,9 @@ npx thepopebot set-var CUSTOM_OPENAI_BASE_URL http://host.docker.internal:11434/
 
 ---
 
-## GitHub Secrets
+## Agent Job Secrets
 
-Set via CLI. Each value is stored as a GitHub repository secret.
-
-| Prefix | Purpose | Visible to LLM? |
-|--------|---------|------------------|
-| `AGENT_` | Protected credentials (filtered from LLM bash env) | No |
-| `AGENT_LLM_` | LLM-accessible credentials (skills, browser logins) | Yes |
-| *(none)* | Workflow-only secrets | N/A |
-
-```bash
-npx thepopebot set-agent-secret GH_TOKEN ghp_xxx          # Protected
-npx thepopebot set-agent-llm-secret BRAVE_API_KEY xxx      # LLM-accessible
-```
+Agent job secrets are managed through the admin UI (Settings > Agent Jobs > Secrets). They are stored encrypted in SQLite and injected as env vars into Docker containers. The agent can discover available secrets via the `get-secret` skill.
 
 ---
 
