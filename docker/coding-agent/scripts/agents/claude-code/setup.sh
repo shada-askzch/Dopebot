@@ -40,7 +40,7 @@ SESSION_ID=$(cat | jq -r .session_id 2>/dev/null)
 DIR=/home/coding-agent/.claude-ttyd-sessions
 mkdir -p "$DIR"
 FILE="$DIR/${PORT:-7681}"
-[ ! -f "$FILE" ] && echo "$SESSION_ID" > "$FILE"
+echo "$SESSION_ID" > "$FILE"
 exit 0
 EOF
 chmod +x /home/coding-agent/.claude-ttyd-sessions-hook.sh
