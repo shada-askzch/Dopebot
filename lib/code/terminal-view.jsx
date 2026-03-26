@@ -10,8 +10,10 @@ import '@xterm/xterm/css/xterm.css';
 import { SpinnerIcon, MicIcon } from '../chat/components/icons.js';
 import { COMMAND_LABELS, CommandOutputDialog } from '../chat/components/code-mode-toggle.js';
 import { useVoiceInput } from '../voice/use-voice-input.js';
-import { getVoiceToken } from '../voice/actions.js';
 import { VoiceBars } from '../chat/components/voice-bars.js';
+
+const getVoiceToken = () =>
+  fetch('/chat/voice-token').then(r => r.json()).catch(() => ({ error: 'Failed to get voice token' }));
 
 const STATUS = { connected: '#22c55e', connecting: '#eab308', disconnected: '#ef4444' };
 const RECONNECT_INTERVAL = 3000;

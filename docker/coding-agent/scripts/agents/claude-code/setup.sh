@@ -9,7 +9,13 @@ cat > ~/.claude/settings.json << 'EOF'
 {
   "theme": "dark",
   "hasTrustDialogAccepted": true,
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch"
+    ]
+  }
 }
 EOF
 
