@@ -1,0 +1,10 @@
+# LiteLLM proxy — enables OpenAI/Mistral/xAI/custom providers as Claude Code backends.
+# Add the litellm service to your docker-compose.custom.yml to activate.
+
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    command: --config /litellm/main.yaml --port 4000
+    volumes:
+      - ./config/litellm:/litellm:ro
+    restart: unless-stopped

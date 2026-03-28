@@ -146,6 +146,7 @@ function ClaudeCodeCard({ settings, onReload }) {
   const config = settings.claudeCode;
   const ready = isClaudeCodeReady(settings);
   const backend = config.backend || 'anthropic';
+  const [saving, setSaving] = useState(false);
 
   // Build backend options: Anthropic + providers with anthropicEndpoint AND a configured key
   const backendOptions = [{ slug: 'anthropic', name: 'Anthropic' }];
@@ -153,11 +154,17 @@ function ClaudeCodeCard({ settings, onReload }) {
     const statusMap = new Map(settings.credentialStatuses.map((s) => [s.key, s.isSet]));
     for (const [slug, prov] of Object.entries(settings.builtinProviders)) {
       if (slug === 'anthropic') continue;
-      if (!prov.anthropicEndpoint) continue;
+      if (!prov.anthropicEndpoint && !prov.litellmProxy) continue;
       const hasKey = prov.credentials.some((c) => statusMap.get(c.key));
       if (hasKey) {
         backendOptions.push({ slug, name: prov.name });
       }
+    }
+  }
+  // Custom providers → route through LiteLLM
+  if (settings?.customProviders) {
+    for (const cp of settings.customProviders) {
+      backendOptions.push({ slug: cp.key, name: cp.name });
     }
   }
 
@@ -170,7 +177,22 @@ function ClaudeCodeCard({ settings, onReload }) {
   };
 
   const handleBackendChange = async (e) => {
-    await updateCodingAgentConfig('claude-code', { backend: e.target.value, model: '' });
+    const newBackend = e.target.value;
+    let newModel = '';
+    if (newBackend !== 'anthropic') {
+      // Non-Anthropic backends require an explicit model
+      const models = getAgentModels(settings, newBackend);
+      if (models.length > 0) {
+        newModel = models[0].id;
+      } else {
+        // Custom provider — use its configured model
+        const cp = settings?.customProviders?.find((p) => p.key === newBackend);
+        newModel = cp?.model || '';
+      }
+    }
+    setSaving(true);
+    await updateCodingAgentConfig('claude-code', { backend: newBackend, model: newModel });
+    setSaving(false);
     await onReload();
   };
 
@@ -206,8 +228,10 @@ function ClaudeCodeCard({ settings, onReload }) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Backend API</label>
-              <select
-                value={backend}
+              <div className="flex items-center gap-3">
+                {saving && <span className="text-xs text-muted-foreground">Saving...</span>}
+                <select
+                  value={backend}
                 onChange={handleBackendChange}
                 className="w-48 rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground"
               >
@@ -215,6 +239,7 @@ function ClaudeCodeCard({ settings, onReload }) {
                   <option key={b.slug} value={b.slug}>{b.name}</option>
                 ))}
               </select>
+              </div>
             </div>
             {backendOptions.length <= 1 && (
               <p className="text-xs text-muted-foreground">
@@ -287,9 +312,12 @@ function ClaudeCodeCard({ settings, onReload }) {
                 onChange={handleModelChange}
                 className="w-48 rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground"
               >
-                <option value="">Default</option>
+                {backend === 'anthropic' && <option value="">Default</option>}
                 {backendModels.map((m) => (
                   <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+                {backendModels.length === 0 && settings?.customProviders?.filter((cp) => cp.key === backend).map((cp) => (
+                  cp.model ? <option key={cp.model} value={cp.model}>{cp.model}</option> : null
                 ))}
               </select>
             </div>
