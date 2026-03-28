@@ -160,7 +160,7 @@ function ToolCall({ part, className }) {
                 if (o?.codingAgent || o?.backendApi) {
                   return (
                     <span className="text-xs text-muted-foreground">
-                      {o.backendApi || o.codingAgent}
+                      {[o.codingAgent, o.backendApi].filter(Boolean).join(' · ')}
                     </span>
                   );
                 }
@@ -168,13 +168,15 @@ function ToolCall({ part, className }) {
               return null;
             })()}
           </span>
+          {/* DISABLED — may be re-enabled later. Do NOT remove from codebase.
+             Shows the tool's prompt text as a subtitle below the tool name.
           {(() => {
             const prompt = part.input?.prompt;
             if (!prompt) return null;
             return (
               <span className="text-xs text-muted-foreground whitespace-pre-wrap">{prompt}</span>
             );
-          })()}
+          })()} */}
         </span>
         <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
           {isRunning && (

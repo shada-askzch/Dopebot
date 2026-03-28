@@ -109,23 +109,18 @@ function ActiveConfig({ settings, onSave }) {
   }
   if (settings?.customProviders) {
     for (const cp of settings.customProviders) {
-      availableProviders.push({ slug: cp.key, name: cp.name, models: null, customModel: cp.model });
+      availableProviders.push({ slug: cp.key, name: cp.name, models: [{ id: cp.model, name: cp.model }] });
     }
   }
 
-  const selectedBuiltin = settings?.builtinProviders?.[provider];
+  const selectedProvider = availableProviders.find((p) => p.slug === provider);
 
   const handleProviderChange = (slug) => {
     setProvider(slug);
-    const bp = settings?.builtinProviders?.[slug];
-    let newModel;
-    if (bp) {
-      const def = bp.models.find((m) => m.default);
-      newModel = def?.id || bp.models[0]?.id || '';
-    } else {
-      const cp = settings?.customProviders?.find((c) => c.key === slug);
-      newModel = cp?.model || '';
-    }
+    const prov = availableProviders.find((p) => p.slug === slug);
+    const models = prov?.models || [];
+    const def = models.find((m) => m.default);
+    const newModel = def?.id || models[0]?.id || '';
     setModel(newModel);
     scheduleAutoSave(slug, newModel, maxTokens);
   };
@@ -161,25 +156,15 @@ function ActiveConfig({ settings, onSave }) {
 
         <div className="flex items-center justify-between py-3">
           <label className="text-sm font-medium shrink-0">Model</label>
-          {selectedBuiltin ? (
-            <select
-              value={model}
-              onChange={(e) => handleModelChange(e.target.value)}
-              className="w-48 rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground"
-            >
-              {selectedBuiltin.models.filter((m) => m.chat !== false).map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
-          ) : (
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => handleModelChange(e.target.value)}
-              placeholder="Model name"
-              className="w-48 rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground"
-            />
-          )}
+          <select
+            value={model}
+            onChange={(e) => handleModelChange(e.target.value)}
+            className="w-48 rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground"
+          >
+            {(selectedProvider?.models || []).filter((m) => m.chat !== false).map((m) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="flex items-center justify-between py-3 last:pb-0">
@@ -662,7 +647,7 @@ function CustomProviderDialog({ open, initial, onSave, onCancel }) {
       <div className="space-y-3">
         <div>
           <label className="text-xs font-medium mb-1 block">Name</label>
-          <input ref={nameRef} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Together AI"
+          <input ref={nameRef} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ollama (model)"
             className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground" />
         </div>
         <div>
@@ -678,8 +663,15 @@ function CustomProviderDialog({ open, initial, onSave, onCancel }) {
         </div>
         <div>
           <label className="text-xs font-medium mb-1 block">Model</label>
-          <input type="text" value={model} onChange={(e) => setModel(e.target.value)} placeholder="meta-llama/Llama-3-70b-chat"
+          <input type="text" value={model} onChange={(e) => setModel(e.target.value)} placeholder="qwen2.5-coder:3b"
             className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-foreground" />
+        </div>
+        <div className="rounded-md border border-border bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground space-y-1">
+          <p className="font-medium text-foreground">Ollama</p>
+          <p>Name: <span className="font-mono">Ollama (qwen2.5-coder:3b)</span></p>
+          <p>URL: <span className="font-mono">http://host.docker.internal:11434/v1</span></p>
+          <p>API Key: any value (e.g. <span className="font-mono">ollama</span>)</p>
+          <p>Model: exact name from <span className="font-mono">ollama list</span></p>
         </div>
       </div>
       <div className="flex justify-end gap-2 mt-5">

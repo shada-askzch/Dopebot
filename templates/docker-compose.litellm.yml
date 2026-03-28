@@ -1,7 +1,5 @@
-# Custom Docker Compose configuration with LiteLLM proxy
-# This file is NOT managed by thepopebot and won't be overwritten on upgrade.
+# Docker Compose configuration with LiteLLM proxy
 # To activate: set COMPOSE_FILE=docker-compose.litellm.yml in .env
-# Make your customizations here (TLS, ports, volumes, extra services, etc.)
 
 services:
   traefik:
@@ -81,46 +79,3 @@ services:
 
 volumes:
   traefik_certs:
-
-# ──────────────────────────────────────────────────────────────────────
-# Tailscale TLS Example
-# ──────────────────────────────────────────────────────────────────────
-# To use Tailscale HTTPS certs instead of Let's Encrypt:
-#
-# 1. On your Tailscale machine, run:
-#      sudo tailscale cert <your-machine-name>.<tailnet>.ts.net
-#    This creates .crt and .key files in /var/lib/tailscale/certs/
-#
-# 2. Copy traefik-dynamic.yml.example to traefik-dynamic.yml and
-#    replace YOUR_HOSTNAME with your full Tailscale machine name.
-#
-# 3. Replace the traefik service above with:
-#
-#  traefik:
-#    image: traefik:v3
-#    command:
-#      - --providers.docker=true
-#      - --providers.docker.exposedByDefault=false
-#      - --providers.file.filename=/etc/traefik/dynamic.yml
-#      - --entrypoints.web.address=:80
-#      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-#      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-#      - --entrypoints.websecure.address=:443
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#      - ./traefik-dynamic.yml:/etc/traefik/dynamic.yml:ro
-#      - /var/lib/tailscale/certs:/certs:ro
-#    restart: unless-stopped
-#
-# 4. Update the event-handler labels:
-#
-#  event-handler:
-#    labels:
-#      - traefik.enable=true
-#      - traefik.http.routers.event-handler.rule=Host(`${APP_HOSTNAME}`)
-#      - traefik.http.routers.event-handler.entrypoints=websecure
-#      - traefik.http.routers.event-handler.tls=true
-#      - traefik.http.services.event-handler.loadbalancer.server.port=80
