@@ -1,0 +1,15 @@
+ARG BASE_IMAGE=coding-agent-base
+FROM ${BASE_IMAGE}
+
+USER root
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && UV_TOOL_DIR=/opt/uv-tools UV_TOOL_BIN_DIR=/usr/local/bin UV_PYTHON_INSTALL_DIR=/opt/uv-python \
+       /root/.local/bin/uv tool install --python 3.13 kimi-cli
+
+RUN mkdir -p /home/coding-agent/.kimi \
+    && chown -R coding-agent:coding-agent /home/coding-agent/.kimi
+
+USER coding-agent
+
+ENV AGENT=kimi-cli

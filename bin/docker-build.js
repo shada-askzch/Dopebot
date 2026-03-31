@@ -62,6 +62,11 @@ const CODING_AGENTS = [
     context: 'docker/coding-agent',
     dockerfile: 'docker/coding-agent/Dockerfile.opencode',
   },
+  {
+    name: 'coding-agent-kimi-cli',
+    context: 'docker/coding-agent',
+    dockerfile: 'docker/coding-agent/Dockerfile.kimi-cli',
+  },
 ];
 
 // Non-coding-agent images (independent, built in parallel)
