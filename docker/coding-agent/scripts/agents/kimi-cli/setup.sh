@@ -89,7 +89,7 @@ timeout = 5
 TOML
 
 # Register Playwright MCP server for browser automation
-kimi mcp add --transport stdio playwright -- npx -y @playwright/mcp@0.0.70 --headless --browser chromium 2>/dev/null || true
+kimi mcp add --transport stdio -e PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers playwright -- npx -y @playwright/mcp@0.0.70 --headless --browser chromium 2>/dev/null || true
 
 # Activate agent-job-secrets skill when token is available (agent chat mode only)
 if [ -n "$AGENT_JOB_TOKEN" ]; then

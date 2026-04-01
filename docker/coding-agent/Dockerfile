@@ -80,9 +80,9 @@ RUN useradd -m -s /bin/bash -u 1001 coding-agent \
 # ──────────────────────────────────────────────
 # Playwright Chrome for Testing (pre-installed for MCP)
 # ──────────────────────────────────────────────
-USER coding-agent
-RUN npx -y @playwright/mcp@0.0.70 install-browser chrome-for-testing
-USER root
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers
+RUN npx -y @playwright/mcp@0.0.70 install-browser chrome-for-testing \
+    && chown -R coding-agent:coding-agent /opt/pw-browsers
 
 # ──────────────────────────────────────────────
 # Copy scripts, commands, and configs

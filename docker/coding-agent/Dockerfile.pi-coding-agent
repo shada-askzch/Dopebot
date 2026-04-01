@@ -12,4 +12,4 @@ RUN mkdir -p /home/coding-agent/.pi/agent \
 USER coding-agent
 
 ENV AGENT=pi-coding-agent
-ENV PLAYWRIGHT_MCP_EXECUTABLE_PATH=/home/coding-agent/.cache/ms-playwright/chromium-1217/chrome-linux/chrome
+ENV PLAYWRIGHT_MCP_EXECUTABLE_PATH=/opt/pw-browsers/chromium-1217/chrome-linux/chrome
